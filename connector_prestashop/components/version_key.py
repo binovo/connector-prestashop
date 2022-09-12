@@ -136,7 +136,7 @@ class VersionKey17x0(Component):
         "order_discounts": "order_cart_rules",
         "order_row": "order_row",
         "group": "group",
-        "tax": "taxes",
+        "tax": "tax",
         "product_features": "product_features",
         "combinations": "combination",
         "tag": "tags",
