@@ -33,8 +33,10 @@ class PrestashopExportMapper(AbstractComponent):
                 # force float precision:
                 digits = column["digits"]
                 if digits and isinstance(digits[1], int):
-                    # Any reason we need more than 12 decimals?
-                    fmt = "{:." + str(max(digits[1], 12)) + "f}"
+                    # PS default value for decimals is 6, for fields in sale orders, products and so on
+                    # Odoo normally uses 2 decimals for products, format with no more than 6 decimals
+                    # to avoid PS WS validation errors
+                    fmt = "{:." + str(min(digits[1], 6)) + "f}"
                     res = fmt.format(res)
                     set_precision = True
             if not set_precision:
