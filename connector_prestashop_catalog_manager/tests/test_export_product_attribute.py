@@ -94,9 +94,13 @@ class TestExportProductAttribute(CatalogManagerTransactionCase):
         self.value.name = "New value updated"
         # check export delayed
         self.assertEqual(1, self.instance_delay_record.export_record.call_count)
+        # reset calls counter
+        self.instance_delay_record.export_record.call_count = 0
         # write in binding
-        binding.prestashop_position = 2
+        binding.sequence = 2
         # check export delayed again
+        # Two export_record calls expected, one for attribute.value.event.listener
+        # and another one from prestashop.attribute.event.listener
         self.assertEqual(2, self.instance_delay_record.export_record.call_count)
 
     @assert_no_job_delayed
