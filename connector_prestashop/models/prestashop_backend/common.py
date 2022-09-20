@@ -310,6 +310,16 @@ class PrestashopBackend(models.Model):
             ].with_delay().export_product_quantities(backend=backend_record)
         return True
 
+    def export_account_taxes(self):
+        for backend_record in self:
+            backend_record.env[
+                "prestashop.account.tax.group"
+            ].with_delay().export_tax_groups(backend=backend_record)
+            backend_record.env[
+                "prestashop.account.tax"
+            ].with_delay().export_taxes(backend=backend_record)
+        return True
+
     def import_stock_qty(self):
         for backend_record in self:
             backend_record.env[

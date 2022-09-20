@@ -1,6 +1,6 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 from odoo.addons.component.core import Component
 
@@ -11,8 +11,7 @@ class AccountTaxGroup(models.Model):
     prestashop_bind_ids = fields.One2many(
         comodel_name="prestashop.account.tax.group",
         inverse_name="odoo_id",
-        string="PrestaShop Bindings",
-        readonly=True,
+        string="PrestaShop Bindings"
     )
     company_id = fields.Many2one(
         comodel_name="res.company",
@@ -42,6 +41,25 @@ class PrestashopAccountTaxGroup(models.Model):
         ondelete="cascade",
     )
 
+    @api.model
+    def export_tax_groups(self, backend):
+        tax_groups = self.search(
+            [
+                ("backend_id", "=", backend.id),
+            ]
+        )
+        for tax_group in tax_groups:
+            tax_group.with_delay().export_record()
+
+    def bind_group_taxes(self):
+        for tax_group in self:
+            if tax_group.prestashop_bind_ids:
+                for tax in tax_group.tax_ids.filtered(
+                    lambda tx: not tx.prestashop_bind_ids
+                        and tx.type_tax_use == "sale" and tx.amount_type == "percent"):
+                    tax.prestashop_bind_ids = [(0, 0, {'odoo_id': tax.id, 'backend_id': tax_group.backend_id.id})]
+        return True
+
 
 class TaxGroupAdapter(Component):
     _name = "prestashop.account.tax.group.adapter"
@@ -50,6 +68,8 @@ class TaxGroupAdapter(Component):
 
     _model_name = "prestashop.account.tax.group"
     _prestashop_model = "tax_rule_groups"
+    _export_node_name = "tax_rule_group"
+    _export_node_name_res = "tax_rule_group"
 
     def search(self, filters=None):
         if filters is None:

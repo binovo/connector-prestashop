@@ -1,6 +1,6 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 from odoo.addons.component.core import Component
 
@@ -21,6 +21,16 @@ class PrestashopAccountTax(models.Model):
         ondelete="cascade",
     )
 
+    @api.model
+    def export_taxes(self, backend):
+        taxes = self.search(
+            [
+                ("backend_id", "=", backend.id),
+            ]
+        )
+        for tax in taxes:
+            tax.with_delay().export_record()
+
 
 class AccountTax(models.Model):
     _inherit = "account.tax"
@@ -28,8 +38,7 @@ class AccountTax(models.Model):
     prestashop_bind_ids = fields.One2many(
         comodel_name="prestashop.account.tax",
         inverse_name="odoo_id",
-        string="prestashop Bindings",
-        readonly=True,
+        string="prestashop Bindings"
     )
 
 
@@ -40,3 +49,5 @@ class AccountTaxAdapter(Component):
 
     _model_name = "prestashop.account.tax"
     _prestashop_model = "taxes"
+    _export_node_name = "tax"
+    _export_node_name_res = "tax"

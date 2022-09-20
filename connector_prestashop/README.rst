@@ -26,8 +26,10 @@ to Odoo:
 Once these objects are synchronised, it will allow the import of sales orders,
 together with the related customers.
 
-As an extra feature, you can also export the stock quantities back to
-PrestaShop.
+As an extra features, you can also:
+
+* export the stock quantities back to PrestaShop.
+* export account tax group and taxes back to PrestaShop.
 
 If you want to export from Odoo to PrestaShop changes made on the products,
 product categories or product images, you need to install
@@ -64,6 +66,9 @@ Steps in PrestaShop
 #. Add a new entry.
 #. Generate a new API key that will be needed later.
 #. Grant all the needed access according your security policy.
+#. In case that you export Odoo group tax groups and taxes to Prestashop,
+then you need to define tax rules in the group to bind group, taxes and define
+the rules needed.
 
 Steps in Odoo
 -------------
@@ -160,6 +165,7 @@ Contributors
 * Marc Poch <mpoch@planetatic.com>
 * JesusVMayor <jesus@comunitea.com>
 * Hai Lang <hailn@trobz.com>
+* Ugaitz Olaizola <uolaizola@binovo.es>
 
 Maintainer
 ----------
