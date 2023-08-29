@@ -316,6 +316,19 @@ class SaleOrderImportMapper(Component):
             date_order = fields.Datetime.to_string(local_dt.astimezone(pytz.utc))
         return {"date_order": date_order}
 
+    def _sale_order_onchange_fields(self):
+        return [
+            "fiscal_position_id",
+            "partner_id",
+            "partner_shipping_id",
+            "partner_invoice_id",
+            "payment_mode_id",
+            "workflow_process_id",
+        ]
+
+    def _sale_order_line_onchange_fields(self):
+        return ["product_id"]
+
     def finalize(self, map_record, values):
         sale_vals = {
             k: v
@@ -324,14 +337,7 @@ class SaleOrderImportMapper(Component):
         }
         sale_vals = self.env["sale.order"].play_onchanges(
             sale_vals,
-            [
-                "fiscal_position_id",
-                "partner_id",
-                "partner_shipping_id",
-                "partner_invoice_id",
-                "payment_mode_id",
-                "workflow_process_id",
-            ],
+            self._sale_order_onchange_fields(),
         )
         values.update(sale_vals)
         presta_line_list = []
@@ -345,7 +351,7 @@ class SaleOrderImportMapper(Component):
                 if k in self.env["sale.order.line"]._fields.keys()
             }
             line_vals = self.env["sale.order.line"].play_onchanges(
-                line_vals, ["product_id"]
+                line_vals, self._sale_order_line_onchange_fields()
             )
             presta_line_vals.update(line_vals)
             presta_line_list.append(
