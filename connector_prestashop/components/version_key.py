@@ -107,7 +107,7 @@ class VersionKey1750(Component):
 
     keys = {
         "product_option_value": "product_option_values",
-        "category": "categories",
+        "category": "category",
         "image": "images",
         "order_slip": "order_slip",
         "order_slip_detail": "order_slip_details",
@@ -129,7 +129,7 @@ class VersionKey17x0(Component):
 
     keys = {
         "product_option_value": "product_option_value",
-        "category": "categories",
+        "category": "category",
         "image": "image",
         "order_slip": "order_slip",
         "order_slip_detail": "order_slip_details",
