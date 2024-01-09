@@ -43,10 +43,7 @@ class TemplateMapper(Component):
         (external_to_m2o("id_shop_default"), "default_shop_id"),
         ("link_rewrite", "link_rewrite"),
         ("reference", "reference"),
-        ("available_for_order", "available_for_order"),
-        ("on_sale", "on_sale"),
         ("low_stock_threshold", "low_stock_threshold"),
-        ("low_stock_alert", "low_stock_alert"),
     ]
 
     @mapping
@@ -389,6 +386,22 @@ class TemplateMapper(Component):
         if visibility not in ("both", "catalog", "search"):
             visibility = "none"
         return {"visibility": visibility}
+
+    @mapping
+    def on_sale(self, record):
+        return {"on_sale": bool(int(record.get("on_sale", False)))}
+
+    @mapping
+    def available_for_order(self, record):
+        return {"available_for_order": bool(int(record.get("available_for_order", False)))}
+
+    @mapping
+    def show_price(self, record):
+        return {"show_price": bool(int(record.get("show_price", False)))}
+
+    @mapping
+    def low_stock_alert(self, record):
+        return {"low_stock_alert": bool(int(record.get("low_stock_alert", False)))}
 
 
 class FeaturesProductImportMapper(Component):
