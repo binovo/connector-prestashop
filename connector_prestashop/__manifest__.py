@@ -7,13 +7,12 @@
 
 {
     "name": "PrestaShop-Odoo connector",
-    "version": "12.0.1.0.2",
+    "version": "12.0.2.0.0",
     "license": "AGPL-3",
     "depends": [
         "account",
         "base_vat",  # for vat validation on partner address
         "product",
-        "product_multi_category",  # oca/product-attribute
         "product_multi_image",  # oca/product-attribute
         "connector_ecommerce",  # oca/connector-ecommerce
         "purchase",
@@ -47,7 +46,6 @@
         "data/ecommerce_data.xml",
         "views/prestashop_backend_view.xml",
         "views/product_view.xml",
-        "views/product_category_view.xml",
         "views/image_view.xml",
         "views/delivery_view.xml",
         "views/connector_prestashop_menu.xml",

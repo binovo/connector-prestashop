@@ -52,50 +52,11 @@ class ExportMultipleProducts(models.TransientModel):
         else:
             return 1 + self._parent_length(categ.parent_id)
 
-    def _set_main_category(self, product):
-        if product.categ_ids and product.categ_id.parent_id:
-            max_parent = {"length": 0}
-            for categ in product.categ_ids:
-                parent_length = self._parent_length(categ.parent_id)
-                if parent_length > max_parent["length"]:
-                    max_parent = {"categ_id": categ.id, "length": parent_length}
-            categ_length = self._parent_length(product.categ_id.parent_id)
-            if categ_length < parent_length:
-                if product.categ_id.id not in product.categ_ids.ids:
-                    product.write(
-                        {
-                            "categ_ids": [(4, product.categ_id.id)],
-                        }
-                    )
-                    product.write(
-                        {
-                            "categ_id": max_parent["categ_id"],
-                            "categ_ids": [(3, max_parent["categ_id"])],
-                        }
-                    )
-                else:
-                    product.write(
-                        {
-                            "categ_id": max_parent["categ_id"],
-                            "categ_ids": [(3, max_parent["categ_id"])],
-                        }
-                    )
-
-    def set_category(self):
-        product_obj = self.env["product.template"]
-        for product in product_obj.browse(self.env.context["active_ids"]):
-            self._set_main_category(product)
-
     def _check_images(self, product):
         for variant in product.product_variant_ids:
             for image in variant.image_ids:
                 if image.owner_id != product.id:
                     image.product_id = product
-
-    def _check_category(self, product):
-        if not (product.categ_ids):
-            return False
-        return True
 
     def _check_variants(self, product):
         if len(product.product_variant_ids) == 1:
@@ -139,17 +100,7 @@ class ExportMultipleProducts(models.TransientModel):
             )
             if not presta_tmpl:
                 self._check_images(product)
-                cat = self._check_category(product)
-                var = self._check_variants(product)
-                if not (var and cat):
-                    raise ValidationError(
-                        _(
-                            """Product "%s" cannot be exported to Prestashop \
-because is not assigned to any Prestashop category or \
-has not any Product Variant."""
-                        )
-                        % product.name
-                    )
+                self._check_variants(product)
                 self.create_prestashop_template(product)
             else:
                 for tmpl in presta_tmpl:

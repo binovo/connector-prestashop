@@ -21,16 +21,6 @@ class PrestashopAccountTax(models.Model):
         ondelete="cascade",
     )
 
-    @api.model
-    def export_taxes(self, backend):
-        taxes = self.search(
-            [
-                ("backend_id", "=", backend.id),
-            ]
-        )
-        for tax in taxes:
-            tax.with_delay().export_record()
-
 
 class AccountTax(models.Model):
     _inherit = "account.tax"

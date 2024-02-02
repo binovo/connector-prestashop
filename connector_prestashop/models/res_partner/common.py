@@ -24,13 +24,6 @@ class PrestashopPartnerMixin(models.AbstractModel):
     _name = "prestashop.partner.mixin"
     _description = "Mixin for Partner Bindings"
 
-    group_ids = fields.Many2many(
-        comodel_name="prestashop.res.partner.category",
-        relation="prestashop_category_partner",
-        column1="partner_id",
-        column2="category_id",
-        string="PrestaShop Groups",
-    )
     date_add = fields.Datetime(
         string="Created At (on PrestaShop)",
         readonly=True,
@@ -38,12 +31,6 @@ class PrestashopPartnerMixin(models.AbstractModel):
     date_upd = fields.Datetime(
         string="Updated At (on PrestaShop)",
         readonly=True,
-    )
-    default_category_id = fields.Many2one(
-        comodel_name="prestashop.res.partner.category",
-        string="PrestaShop default category",
-        help="This field is synchronized with the field "
-        "'Default customer group' in PrestaShop.",
     )
     company = fields.Char(string="Partner Company")
 
@@ -55,7 +42,7 @@ class PrestashopResPartner(models.Model):
         "prestashop.partner.mixin",
     ]
     _inherits = {"res.partner": "odoo_id"}
-    _rec_name = "shop_group_id"
+    _rec_name = "odoo_id"
     _description = "Partner prestashop bindings"
 
     odoo_id = fields.Many2one(
@@ -83,21 +70,6 @@ class PrestashopResPartner(models.Model):
     )
     newsletter = fields.Boolean(string="Newsletter")
     birthday = fields.Date(string="Birthday")
-
-    def import_customers_since(self, backend_record=None, since_date=None, **kwargs):
-        """Prepare the import of partners modified on PrestaShop"""
-        filters = None
-        if since_date:
-            filters = {"date": "1", "filter[date_upd]": ">[%s]" % since_date}
-        now_fmt = fields.Datetime.now()
-        self.env["prestashop.res.partner.category"].import_batch(
-            backend=backend_record, filters=filters, priority=10, **kwargs
-        )
-        self.env["prestashop.res.partner"].import_batch(
-            backend=backend_record, filters=filters, priority=15, **kwargs
-        )
-        backend_record.import_partners_since = now_fmt
-        return True
 
 
 class PrestashopAddressMixin(models.AbstractModel):

@@ -6,6 +6,27 @@
 Odoo PrestaShop Connector
 =========================
 
+connector-prestashop versión 2.0
+
+Configuración
+
+    • Configurar backend de PS
+    • Sincronizar metadata y basedata
+    • Importar métodos de pago
+    • Mapear los impuestos de PS en Odoo
+    • (Opcional) mapear los partners de PS en Odoo, tanto clientes como direcciones, si no existen a la hora de importar el PV desde PS, se dan de alta en Odoo sino existen.
+    • Exportar los productos necesarios a PS, si no existen a la hora de importar el PV desde PS, no se dan de alta y falla la importación.
+
+Odoo → PS
+
+    • De Odoo a PS se exportan plantillas, atributos, variantes y el stock de ellos, las categorías de los productos se ignoran, tampoco se traslada ninguna categoría de PS a Odoo.
+
+PS → Odoo
+
+    • Se importan los PV, si no existen los datos del cliente o las direcciones se darán de alta.
+
+El resto de casuísticas quedan fuera del alcance la implementación de este módulo.
+
 This module connects Odoo and PrestaShop.
 
 PrestaShop (http://www.prestashop.com/) is a popular e-commerce platform
@@ -17,10 +38,8 @@ to Odoo:
 * Websites
 * Stores and languages
 * Carriers
-* Product categories
 * Products
 * Combinations of products
-* Partner categories
 * Customers
 
 Once these objects are synchronised, it will allow the import of sales orders,
@@ -29,7 +48,6 @@ together with the related customers.
 As an extra features, you can also:
 
 * export the stock quantities back to PrestaShop.
-* export account tax group and taxes back to PrestaShop.
 
 If you want to export from Odoo to PrestaShop changes made on the products,
 product categories or product images, you need to install
@@ -66,9 +84,6 @@ Steps in PrestaShop
 #. Add a new entry.
 #. Generate a new API key that will be needed later.
 #. Grant all the needed access according your security policy.
-#. In case that you export Odoo group tax groups and taxes to Prestashop,
-then you need to define tax rules in the group to bind group, taxes and define
-the rules needed.
 
 Steps in Odoo
 -------------
@@ -83,11 +98,10 @@ Steps in Odoo
 #. Click on "Synchronize Metadata" button. This will bring the basic shop
    information that you can find on *Websites* and *Stores* menus.
 #. Click on "Synchronize Base Data" button. This will import carriers,
-   languages, tax groups and the rest of base data that are needed for the
+   languages and the rest of base data that are needed for the
    proper work.
-#. Go to *Accounting > Configuration > Taxes > Tax Groups*, and include
-   for each of the tax definition imported from PrestaShop, the corresponding
-   taxes in Odoo.
+#. Configure taxes indicating prestashop id.
+#. Configure products indicating prestashop id.
 #. Activate the job runner, checking the connector documentation for setting
    the server correctly for using it in
    http://odoo-connector.com/guides/jobrunner.html
@@ -96,12 +110,7 @@ Steps in Odoo
 #. Activate the scheduled jobs for importing the records you want:
 
   * PrestaShop - Export Stock Quantities
-  * PrestaShop - Import Carriers
-  * PrestaShop - Import Customers and Groups
-  * PrestaShop - Import Products and Categories
   * PrestaShop - Import Sales Orders
-  * PrestaShop - Import suppliers
-  * PrestaShop - Payment methods
 
 Usage
 =====

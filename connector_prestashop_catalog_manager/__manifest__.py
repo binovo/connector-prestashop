@@ -7,7 +7,7 @@
 
 {
     "name": "Prestashop-Odoo Catalog Manager",
-    "version": "12.0.1.0.0",
+    "version": "12.0.2.0.0",
     "license": "AGPL-3",
     "depends": [
         "connector_prestashop",
@@ -24,12 +24,9 @@
     "data": [
         "views/product_attribute_view.xml",
         "views/product_view.xml",
-        "wizards/export_category_view.xml",
         "wizards/export_multiple_products_view.xml",
-        "wizards/sync_products_view.xml",
         "wizards/active_deactive_products_view.xml",
         "views/product_image_view.xml",
-        "views/product_category_view.xml",
         "security/ir.model.access.csv",
     ],
     "installable": True,

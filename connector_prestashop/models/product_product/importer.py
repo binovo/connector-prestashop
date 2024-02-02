@@ -81,7 +81,6 @@ class ProductCombinationImporter(Component):
 
     def _after_import(self, binding):
         super()._after_import(binding)
-        self.import_supplierinfo(binding)
 
     def set_variant_images(self, combinations):
         backend_adapter = self.component(
@@ -111,16 +110,6 @@ class ProductCombinationImporter(Component):
             product.with_context(connector_no_export=True).write(
                 {"image_ids": [(6, 0, [x.id for x in images])]}
             )
-
-    def import_supplierinfo(self, binding):
-        ps_id = self._get_prestashop_data()["id"]
-        filters = {
-            # 'filter[id_product]': ps_id,
-            "filter[id_product_attribute]": ps_id
-        }
-        self.env["prestashop.product.supplierinfo"].with_delay().import_batch(
-            self.backend_record, filters=filters
-        )
 
     def _import(self, binding, **kwargs):
         # We need to pass the template presta record because we need it

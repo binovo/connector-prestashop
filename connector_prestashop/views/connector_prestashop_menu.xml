@@ -57,13 +57,6 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-    <record id="action_prestashop_categories" model="ir.actions.act_window">
-        <field name="name">Odoo product Categories</field>
-        <field name="res_model">prestashop.product.category</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
-
     <record id="action_prestashop_products" model="ir.actions.act_window">
         <field name="name">Prestashop Products</field>
         <field name="res_model">prestashop.product.combination</field>
@@ -109,12 +102,6 @@
         name="External Attribute Values"
         parent="menu_prestashop_external_objects"
         action="action_prestashop_values"
-    />
-    <menuitem
-        id="menu_prestashop_external_categories"
-        name="External Categories"
-        parent="menu_prestashop_external_objects"
-        action="action_prestashop_categories"
     />
     <menuitem
         id="menu_prestashop_external_product_templates"

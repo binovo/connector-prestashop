@@ -29,16 +29,7 @@ class PartnerImportMapper(Component):
         ("note", "comment"),
         (external_to_m2o("id_shop_group"), "shop_group_id"),
         (external_to_m2o("id_shop"), "shop_id"),
-        (external_to_m2o("id_default_group"), "default_category_id"),
     ]
-
-    @mapping
-    def pricelist(self, record):
-        binder = self.binder_for("prestashop.groups.pricelist")
-        pricelist = binder.to_internal(record["id_default_group"], unwrap=True)
-        if not pricelist:
-            return {}
-        return {"property_product_pricelist": pricelist.id}
 
     @mapping
     def is_company(self, record):
@@ -57,27 +48,6 @@ class PartnerImportMapper(Component):
         parts = [record["firstname"], record["lastname"]]
         name = " ".join(p.strip() for p in parts if p.strip())
         return {"name": name}
-
-    @mapping
-    def groups(self, record):
-        groups = (
-            record.get("associations", {})
-            .get("groups", {})
-            .get(self.backend_record.get_version_ps_key("group"), [])
-        )
-        if not isinstance(groups, list):
-            groups = [groups]
-        model_name = "prestashop.res.partner.category"
-        partner_category_bindings = self.env[model_name].browse()
-        binder = self.binder_for(model_name)
-        for group in groups:
-            partner_category_bindings |= binder.to_internal(group["id"])
-
-        result = {
-            "group_ids": [(6, 0, partner_category_bindings.ids)],
-            "category_id": [(4, b.odoo_id.id) for b in partner_category_bindings],
-        }
-        return result
 
     @mapping
     def lang(self, record):
@@ -102,17 +72,6 @@ class ResPartnerImporter(Component):
     _name = "prestashop.res.partner.importer"
     _inherit = "prestashop.importer"
     _apply_on = "prestashop.res.partner"
-
-    def _import_dependencies(self):
-        groups = (
-            self.prestashop_record.get("associations", {})
-            .get("groups", {})
-            .get(self.backend_record.get_version_ps_key("group"), [])
-        )
-        if not isinstance(groups, list):
-            groups = [groups]
-        for group in groups:
-            self._import_dependency(group["id"], "prestashop.res.partner.category")
 
     def _after_import(self, binding):
         super()._after_import(binding)

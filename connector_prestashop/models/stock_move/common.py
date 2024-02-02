@@ -53,13 +53,3 @@ class StockQuant(models.Model):
             "product_id"
         ).update_prestashop_qty()
         return super().unlink()
-
-
-class PrestashopStockPickingListener(Component):
-    _name = "prestashop.stock.picking.listener"
-    _inherit = "base.event.listener"
-    _apply_on = ["stock.picking"]
-
-    def on_tracking_number_added(self, record):
-        for binding in record.sale_id.prestashop_bind_ids:
-            binding.with_delay().export_tracking_number()

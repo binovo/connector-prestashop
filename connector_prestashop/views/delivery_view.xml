@@ -11,7 +11,6 @@
             <group>
                 <field name="active_ext" />
                 <field name="id_reference" readonly="1" />
-                <field name="export_tracking" />
                 <field name="sync_date" readonly="1" />
                 <field name="prestashop_id" readonly="1" />
             </group>
@@ -31,7 +30,6 @@
         <tree string="PrestaShop Carriers">
             <field name="name_ext" />
             <field name="active_ext" />
-            <field name="export_tracking" string="Export tracking" />
             <field name="sync_date" string="Last synchro" />
             <field name="prestashop_id" />
             <field name="odoo_id" string="Delivery method" />

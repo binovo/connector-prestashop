@@ -41,16 +41,6 @@ class PrestashopAccountTaxGroup(models.Model):
         ondelete="cascade",
     )
 
-    @api.model
-    def export_tax_groups(self, backend):
-        tax_groups = self.search(
-            [
-                ("backend_id", "=", backend.id),
-            ]
-        )
-        for tax_group in tax_groups:
-            tax_group.with_delay().export_record()
-
     def bind_group_taxes(self):
         for tax_group in self:
             if tax_group.prestashop_bind_ids:

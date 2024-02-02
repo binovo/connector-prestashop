@@ -26,11 +26,6 @@ class ProductTemplate(models.Model):
         copy=False,
         string="PrestaShop Bindings",
     )
-    prestashop_default_category_id = fields.Many2one(
-        comodel_name="product.category",
-        string="PrestaShop Default Category",
-        ondelete="restrict",
-    )
     default_image_id = fields.Integer(string="PrestaShop Default Image ID")
 
     # TODO remove when https://github.com/odoo/odoo/pull/30024 is merged
@@ -158,28 +153,6 @@ class PrestashopProductTemplate(models.Model):
         ],
         default="both",
     )
-
-    def import_products(self, backend, since_date=None, **kwargs):
-        filters = None
-        if since_date:
-            filters = {"date": "1", "filter[date_upd]": ">[%s]" % (since_date)}
-        now_fmt = fields.Datetime.now()
-
-        self.env["prestashop.product.category"].import_batch(
-            backend, filters=filters, priority=10
-        )
-
-        self.env["prestashop.product.template"].import_batch(
-            backend, filters=filters, priority=15
-        )
-
-        backend.import_products_since = now_fmt
-        return True
-
-    def import_inventory(self, backend):
-        with backend.work_on("_import_stock_available") as work:
-            importer = work.component(usage="batch.importer")
-            return importer.run()
 
     def export_inventory(self, fields=None):
         """Export the inventory configuration and quantity of a product."""

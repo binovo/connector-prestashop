@@ -98,7 +98,6 @@
                              <field name="product_qty_field" />
                         </group>
                         <group string="Accounting">
-                            <field name="refund_journal_id" />
                             <field name="taxes_included" />
                         </group>
 
@@ -120,7 +119,6 @@
                                 Once imported,
                                 some types of records,
                                 like the products
-                                or categories,
                                 need a manual review.
                                 You will find the list
                                 of the
@@ -129,36 +127,6 @@
                             </p>
                             <group>
                                 <div>
-                                    <label
-                                        string="Import product categories and products"
-                                        class="oe_inline"
-                                        for="import_products_since"
-                                    />
-                                    <field
-                                        name="import_products_since"
-                                        class="oe_inline"
-                                        nolabel="1"
-                                    />
-                                </div>
-                                <button
-                                    name="import_products"
-                                    type="object"
-                                    class="oe_highlight"
-                                    string="Import in background"
-                                />
-                            </group>
-                            <group>
-                                <span>Import stock quantities</span>
-                                <button
-                                    name="import_stock_qty"
-                                    type="object"
-                                    class="oe_highlight"
-                                    string="Import in background"
-                                />
-                            </group>
-                            <group>
-                                <div>
-<!--                                    <span>Import payment mode</span>-->
                                     <label
                                         string="Import payment mode"
                                         class="oe_inline"
@@ -172,26 +140,6 @@
                                 </div>
                                 <button
                                     name="import_payment_modes"
-                                    type="object"
-                                    class="oe_highlight"
-                                    string="Import in background"
-                                />
-                            </group>
-                            <group>
-                                <div>
-                                    <label
-                                        string="Import customer groups and customers since"
-                                        class="oe_inline"
-                                        for="import_partners_since"
-                                    />
-                                    <field
-                                        name="import_partners_since"
-                                        class="oe_inline"
-                                        nolabel="1"
-                                    />
-                                </div>
-                                <button
-                                    name="import_customers_since"
                                     type="object"
                                     class="oe_highlight"
                                     string="Import in background"
@@ -217,72 +165,12 @@
                                     string="Import in background"
                                 />
                             </group>
-                            <group>
-                                <div>
-                                    <label
-                                        string="Import refunds"
-                                        class="oe_inline"
-                                        for="import_refunds_since"
-                                    />
-                                    <field
-                                        name="import_refunds_since"
-                                        class="oe_inline"
-                                        nolabel="1"
-                                    />
-                                </div>
-                                <button
-                                    name="import_refunds"
-                                    type="object"
-                                    class="oe_highlight"
-                                    string="Import in background"
-                                />
-                            </group>
-                            <group>
-                                <div>
-                                    <label
-                                        string="Import suppliers"
-                                        class="oe_inline"
-                                        for="import_suppliers_since"
-                                    />
-                                    <field
-                                        name="import_suppliers_since"
-                                        class="oe_inline"
-                                        nolabel="1"
-                                    />
-                                </div>
-                                <button
-                                    name="import_suppliers"
-                                    type="object"
-                                    class="oe_highlight"
-                                    string="Import in background"
-                                />
-                            </group>
-                            <group>
-                                <span>Import carriers</span>
-                                <div>
-                                    <button
-                                        name="import_carriers"
-                                        type="object"
-                                        class="oe_highlight"
-                                        string="Import in background"
-                                    />
-                                </div>
-                            </group>
                         </page>
                         <page string="Export">
                             <group>
                                 <span>Export stock quantities</span>
                                 <button
                                     name="update_product_stock_qty"
-                                    type="object"
-                                    class="oe_highlight"
-                                    string="Export in background"
-                                />
-                            </group>
-                            <group>
-                                <span>Export taxes</span>
-                                <button
-                                    name="export_account_taxes"
                                     type="object"
                                     class="oe_highlight"
                                     string="Export in background"

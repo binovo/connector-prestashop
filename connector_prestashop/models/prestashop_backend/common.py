@@ -90,18 +90,9 @@ class PrestashopBackend(models.Model):
         help="Sales Team assigned to the imported sales orders.",
     )
 
-    refund_journal_id = fields.Many2one(
-        comodel_name="account.journal",
-        string="Refund Journal",
-    )
-
     taxes_included = fields.Boolean("Use tax included prices")
-    import_partners_since = fields.Datetime("Import partners since")
-    import_orders_since = fields.Datetime("Import Orders since")
     import_payment_mode_since = fields.Datetime("Import Payment Modes since")
-    import_products_since = fields.Datetime("Import Products since")
-    import_refunds_since = fields.Datetime("Import Refunds since")
-    import_suppliers_since = fields.Datetime("Import Suppliers since")
+    import_orders_since = fields.Datetime("Import Orders since")
     language_ids = fields.One2many(
         comodel_name="prestashop.res.lang",
         inverse_name="backend_id",
@@ -256,12 +247,10 @@ class PrestashopBackend(models.Model):
                 "prestashop.res.lang",
                 "prestashop.res.country",
                 "prestashop.res.currency",
-                "prestashop.account.tax",
             ]:
                 with backend.work_on(model_name) as work:
                     importer = work.component(usage="auto.matching.importer")
                     importer.run()
-            self.env["prestashop.account.tax.group"].import_batch(backend)
             self.env["prestashop.sale.order.state"].import_batch(backend)
         return True
 
@@ -277,29 +266,6 @@ class PrestashopBackend(models.Model):
         # raise exceptions.UserError(_('Connection successful'))
         self.write({"state": "checked"})
 
-    def import_customers_since(self):
-        for backend_record in self:
-            since_date = backend_record.import_partners_since
-            self.env["prestashop.res.partner"].with_delay().import_customers_since(
-                backend_record=backend_record, since_date=since_date
-            )
-        return True
-
-    def import_products(self):
-        for backend_record in self:
-            since_date = backend_record.import_products_since
-            self.env["prestashop.product.template"].with_delay().import_products(
-                backend_record, since_date
-            )
-        return True
-
-    def import_carriers(self):
-        for backend_record in self:
-            self.env["prestashop.delivery.carrier"].with_delay().import_batch(
-                backend_record,
-            )
-        return True
-
     def update_product_stock_qty(self):
         for backend_record in self:
             backend_record.env[
@@ -308,30 +274,6 @@ class PrestashopBackend(models.Model):
             backend_record.env[
                 "prestashop.product.combination"
             ].with_delay().export_product_quantities(backend=backend_record)
-        return True
-
-    def export_account_taxes(self):
-        for backend_record in self:
-            backend_record.env[
-                "prestashop.account.tax.group"
-            ].with_delay().export_tax_groups(backend=backend_record)
-            backend_record.env[
-                "prestashop.account.tax"
-            ].with_delay().export_taxes(backend=backend_record)
-        return True
-
-    def import_stock_qty(self):
-        for backend_record in self:
-            backend_record.env[
-                "prestashop.product.template"
-            ].with_delay().import_inventory(backend_record)
-
-    def import_sale_orders(self):
-        for backend_record in self:
-            since_date = backend_record.import_orders_since
-            backend_record.env[
-                "prestashop.sale.order"
-            ].with_delay().import_orders_since(backend_record, since_date)
         return True
 
     def import_payment_modes(self):
@@ -347,20 +289,12 @@ class PrestashopBackend(models.Model):
             backend_record.import_payment_mode_since = now_fmt
         return True
 
-    def import_refunds(self):
+    def import_sale_orders(self):
         for backend_record in self:
-            since_date = backend_record.import_refunds_since
-            backend_record.env["prestashop.refund"].import_refunds(
-                backend_record, since_date
-            )
-        return True
-
-    def import_suppliers(self):
-        for backend_record in self:
-            since_date = backend_record.import_suppliers_since
-            backend_record.env["prestashop.supplier"].import_suppliers(
-                backend_record, since_date
-            )
+            since_date = backend_record.import_orders_since
+            backend_record.env[
+                "prestashop.sale.order"
+            ].with_delay().import_orders_since(backend_record, since_date)
         return True
 
     def get_version_ps_key(self, key):
@@ -380,34 +314,8 @@ class PrestashopBackend(models.Model):
         self.search(domain or []).update_product_stock_qty()
 
     @api.model
-    def _scheduler_import_refunds(self, domain=None):
-        self.search(domain or []).import_refunds()
-
-    @api.model
     def _scheduler_import_sale_orders(self, domain=None):
         self.search(domain or []).import_sale_orders()
-
-    @api.model
-    def _scheduler_import_customers(self, domain=None):
-        self.search(domain or []).import_customers_since()
-
-    @api.model
-    def _scheduler_import_products(self, domain=None):
-        self.search(domain or []).import_products()
-
-    @api.model
-    def _scheduler_import_carriers(self, domain=None):
-        self.search(domain or []).import_carriers()
-
-    @api.model
-    def _scheduler_import_payment_methods(self, domain=None):
-        backends = self.search(domain or [])
-        backends.import_payment_modes()
-        backends.import_refunds()
-
-    @api.model
-    def _scheduler_import_suppliers(self, domain=None):
-        self.search(domain or []).import_suppliers()
 
     def _get_locations_for_stock_quantities(self):
         root_location = self.stock_location_id or self.warehouse_id.lot_stock_id

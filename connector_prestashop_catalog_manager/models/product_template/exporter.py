@@ -59,26 +59,6 @@ class ProductTemplateExporter(Component):
                 vals
             )
 
-    def export_categories(self, category):
-        if not category:
-            return
-        category_binder = self.binder_for("prestashop.product.category")
-        ext_id = category_binder.to_external(category, wrap=True)
-        if ext_id:
-            return ext_id
-
-        ps_categ_obj = self.env["prestashop.product.category"]
-        position_cat_id = ps_categ_obj.search([], order="position desc", limit=1)
-        obj_position = position_cat_id.position + 1
-        res = {
-            "backend_id": self.backend_record.id,
-            "odoo_id": category.id,
-            "link_rewrite": get_slug(category.name),
-            "position": obj_position,
-        }
-        binding = ps_categ_obj.with_context(connector_no_export=True).create(res)
-        binding.export_record()
-
     def _parent_length(self, categ):
         if not categ.parent_id:
             return 1
@@ -90,9 +70,6 @@ class ProductTemplateExporter(Component):
         super()._export_dependencies()
         attribute_binder = self.binder_for("prestashop.product.combination.option")
         option_binder = self.binder_for("prestashop.product.combination.option.value")
-
-        for category in self.binding.categ_ids:
-            self.export_categories(category)
 
         for line in self.binding.attribute_line_ids:
             attribute_ext_id = attribute_binder.to_external(
@@ -200,12 +177,6 @@ class ProductTemplateExportMapper(Component):
         ("on_sale", "on_sale"),
         ("date_add", "date_add"),
         ("barcode", "ean13"),
-        (
-            m2o_to_external(
-                "prestashop_default_category_id", binding="prestashop.product.category"
-            ),
-            "id_category_default",
-        ),
         ("state", "state"),
         ("low_stock_threshold", "low_stock_threshold"),
         ("default_code", "reference"),
@@ -252,13 +223,6 @@ class ProductTemplateExportMapper(Component):
         wholesale_price = float("{:.2f}".format(record.standard_price))
         return {"wholesale_price": wholesale_price}
 
-    def _get_product_category(self, record):
-        ext_categ_ids = []
-        binder = self.binder_for("prestashop.product.category")
-        for category in record.categ_ids:
-            ext_categ_ids.append({"id": binder.to_external(category, wrap=True)})
-        return ext_categ_ids
-
     def _get_product_image(self, record):
         ext_image_ids = []
         binder = self.binder_for("prestashop.product.image")
@@ -268,15 +232,12 @@ class ProductTemplateExportMapper(Component):
 
     @changed_by(
         "attribute_line_ids",
-        "categ_ids",
-        "categ_id",
         "image_ids",
     )
     @mapping
     def associations(self, record):
         return {
             "associations": {
-                "categories": {"category_id": self._get_product_category(record)},
                 "images": {"image": self._get_product_image(record)},
             }
         }

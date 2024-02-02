@@ -75,6 +75,3 @@ class TestImportBackendData(PrestashopTransactionCase):
 
         currencies = self.env["prestashop.res.currency"].search([])
         self.assertEqual(len(currencies), 1)
-
-        taxes = self.env["prestashop.account.tax"].search([])
-        self.assertEqual(len(taxes), 7)

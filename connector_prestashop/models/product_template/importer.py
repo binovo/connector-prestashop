@@ -290,36 +290,6 @@ class TemplateMapper(Component):
         return {"purchase_ok": True}
 
     @mapping
-    def categ_ids(self, record):
-        categories = (
-            record["associations"]
-            .get("categories", {})
-            .get(self.backend_record.get_version_ps_key("category"), [])
-        )
-        if not isinstance(categories, list):
-            categories = [categories]
-        product_categories = self.env["product.category"].browse()
-        binder = self.binder_for("prestashop.product.category")
-        for ps_category in categories:
-            product_categories |= binder.to_internal(
-                ps_category["id"],
-                unwrap=True,
-            )
-        return {"categ_ids": [(6, 0, product_categories.ids)]}
-
-    @mapping
-    def default_category_id(self, record):
-        if not int(record["id_category_default"]):
-            return
-        binder = self.binder_for("prestashop.product.category")
-        category = binder.to_internal(
-            record["id_category_default"],
-            unwrap=True,
-        )
-        if category:
-            return {"prestashop_default_category_id": category.id}
-
-    @mapping
     def default_image_id(self, record):
         image_id = record.get("id_default_image", {}).get("value", -1)
         return {"default_image_id": image_id}
@@ -435,119 +405,6 @@ class ImportInventory(models.TransientModel):
     _name = "_import_stock_available"
     _description = "Dummy Import Inventory Transient model"
 
-    @api.model
-    def import_record(self, backend, prestashop_id, record=None, **kwargs):
-        """Import a record from PrestaShop"""
-        with backend.work_on(self._name) as work:
-            importer = work.component(usage="record.importer")
-            return importer.run(prestashop_id, record=record, **kwargs)
-
-
-class ProductInventoryBatchImporter(Component):
-    _name = "prestashop._import_stock_available.batch.importer"
-    _inherit = "prestashop.delayed.batch.importer"
-    _apply_on = "_import_stock_available"
-
-    def run(self, filters=None, **kwargs):
-        if filters is None:
-            filters = {}
-        filters["display"] = "[id,id_product,id_product_attribute]"
-        _super = super()
-        return _super.run(filters, **kwargs)
-
-    def _run_page(self, filters, **kwargs):
-        records = self.backend_adapter.get(filters)
-        for record in records["stock_availables"]["stock_available"]:
-            # if product has combinations then do not import product stock
-            # since combination stocks will be imported
-            if record["id_product_attribute"] == "0":
-                combination_stock_ids = self.backend_adapter.search(
-                    {
-                        "filter[id_product]": record["id_product"],
-                        "filter[id_product_attribute]": ">[0]",
-                    }
-                )
-                if combination_stock_ids:
-                    continue
-            self._import_record(record["id"], record=record, **kwargs)
-        return records["stock_availables"]["stock_available"]
-
-    def _import_record(self, record_id, record=None, **kwargs):
-        """Delay the import of the records"""
-        assert record
-        self.env["_import_stock_available"].with_delay().import_record(
-            self.backend_record, record_id, record=record, **kwargs
-        )
-
-
-class ProductInventoryImporter(Component):
-    _name = "prestashop._import_stock_available.importer"
-    _inherit = "prestashop.importer"
-    _apply_on = "_import_stock_available"
-
-    def _get_quantity(self, record):
-        filters = {
-            "filter[id_product]": record["id_product"],
-            "filter[id_product_attribute]": record["id_product_attribute"],
-            "display": "[quantity]",
-        }
-        quantities = self.backend_adapter.get(filters)
-        all_qty = 0
-        quantities = quantities["stock_availables"]["stock_available"]
-        if isinstance(quantities, dict):
-            quantities = [quantities]
-        for quantity in quantities:
-            all_qty += int(quantity["quantity"])
-        return all_qty
-
-    def _get_binding(self):
-        record = self.prestashop_record
-        if record["id_product_attribute"] == "0":
-            binder = self.binder_for("prestashop.product.template")
-            return binder.to_internal(record["id_product"])
-        binder = self.binder_for("prestashop.product.combination")
-        return binder.to_internal(record["id_product_attribute"])
-
-    def _import_dependencies(self):
-        """Import the dependencies for the record"""
-        record = self.prestashop_record
-        self._import_dependency(record["id_product"], "prestashop.product.template")
-        if record["id_product_attribute"] != "0":
-            self._import_dependency(
-                record["id_product_attribute"], "prestashop.product.combination"
-            )
-
-    def _check_in_new_connector_env(self):
-        # not needed in this importer
-        return
-
-    def run(self, prestashop_id, record=None, **kwargs):
-        assert record
-        self.prestashop_record = record
-        return super().run(prestashop_id, **kwargs)
-
-    def _import(self, binding, **kwargs):
-        record = self.prestashop_record
-        qty = self._get_quantity(record)
-        if qty < 0:
-            qty = 0
-        if binding._name == "prestashop.product.template":
-            products = binding.odoo_id.product_variant_ids
-        else:
-            products = binding.odoo_id
-
-        for product in products:
-            vals = {
-                "product_id": product.id,
-                "product_tmpl_id": product.product_tmpl_id.id,
-                "new_quantity": qty,
-            }
-            template_qty = self.env["stock.change.product.qty"].create(vals)
-            template_qty.with_context(
-                active_id=product.id,
-                connector_no_export=True,
-            ).change_product_qty()
-
 
 class ProductTemplateImporter(Component):
     """Import one translatable record"""
@@ -576,22 +433,13 @@ class ProductTemplateImporter(Component):
         :type environment: :py:class:`connector.connector.ConnectorEnvironment`
         """
         super().__init__(environment)
-        self.default_category_error = False
 
     def _after_import(self, binding):
         super()._after_import(binding)
         self.import_images(binding)
         self.attribute_line(binding)
         self.import_combinations()
-        self.import_supplierinfo(binding)
         self.deactivate_default_product(binding)
-        self.warning_default_category_missing(binding)
-
-    def warning_default_category_missing(self, binding):
-        if self.default_category_error:
-            pass
-            # msg = _("The default category could not be imported.")
-            # TODO post msg / create activity
 
     def deactivate_default_product(self, binding):
         # don't consider product as having variant if they are unactive.
@@ -713,29 +561,7 @@ class ProductTemplateImporter(Component):
                     self.backend_record, prestashop_record["id"], image["id"]
                 )
 
-    def import_supplierinfo(self, binding):
-        ps_id = self._get_prestashop_data()["id"]
-        filters = {"filter[id_product]": ps_id, "filter[id_product_attribute]": 0}
-        self.env["prestashop.product.supplierinfo"].with_delay().import_batch(
-            self.backend_record, filters=filters
-        )
-        ps_product_template = binding
-        template_id = ps_product_template.odoo_id.id
-        ps_supplierinfos = self.env["prestashop.product.supplierinfo"].search(
-            [("product_tmpl_id", "=", template_id)]
-        )
-        for ps_supplierinfo in ps_supplierinfos:
-            try:
-                ps_supplierinfo.resync()
-            # PrestaShopWebServiceError is transformed in FailedJobError when
-            # supplierinfo can't fetch combination dependency. If combination has been
-            # removed, we want to clean the supplierinfo too)
-            except (PrestaShopWebServiceError, FailedJobError):
-                ps_supplierinfo.odoo_id.unlink()
-
     def _import_dependencies(self):
-        self._import_default_category()
-        self._import_categories()
         self._import_manufacturer()
 
         record = self.prestashop_record
@@ -776,29 +602,6 @@ class ProductTemplateImporter(Component):
         )
         assert len(ir_model) == 1
         return ir_model.id
-
-    def _import_default_category(self):
-        record = self.prestashop_record
-        if int(record["id_category_default"]):
-            try:
-                self._import_dependency(
-                    record["id_category_default"], "prestashop.product.category"
-                )
-            except PrestaShopWebServiceError:
-                # an activity will be added in _after_import (because
-                # we'll know the binding at this point)
-                self.default_category_error = True
-
-    def _import_categories(self):
-        record = self.prestashop_record
-        associations = record.get("associations", {})
-        categories = associations.get("categories", {}).get(
-            self.backend_record.get_version_ps_key("category"), []
-        )
-        if not isinstance(categories, list):
-            categories = [categories]
-        for category in categories:
-            self._import_dependency(category["id"], "prestashop.product.category")
 
 
 class ManufacturerProductDependency(Component):

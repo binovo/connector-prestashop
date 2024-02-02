@@ -14,63 +14,13 @@ class TestExportProduct(CatalogManagerTransactionCase):
     def setUp(self):
         super().setUp()
 
-        # create and bind category
-        category_home = self.env["product.category"].create(
-            {
-                "name": "Home",
-            }
-        )
-        self.create_binding_no_export(
-            "prestashop.product.category", category_home.id, 2
-        )
-        category_women = self.env["product.category"].create(
-            {
-                "name": "Women",
-                "parent_id": category_home.id,
-            }
-        )
-        self.create_binding_no_export(
-            "prestashop.product.category", category_women.id, 3
-        )
-        category_tops = self.env["product.category"].create(
-            {
-                "name": "Tops",
-                "parent_id": category_women.id,
-            }
-        )
-        self.create_binding_no_export(
-            "prestashop.product.category", category_tops.id, 4
-        )
-        category_tshirts = self.env["product.category"].create(
-            {
-                "name": "T-shirts",
-                "parent_id": category_tops.id,
-            }
-        )
-        self.create_binding_no_export(
-            "prestashop.product.category", category_tshirts.id, 5
-        )
-
         # create template
         self.template = self.env["product.template"].create(
             {
                 "barcode": "8411788010150",
-                "categ_ids": [
-                    (
-                        6,
-                        False,
-                        [
-                            category_home.id,
-                            category_women.id,
-                            category_tops.id,
-                            category_tshirts.id,
-                        ],
-                    )
-                ],
                 "default_code": "NEW_PRODUCT",
                 "list_price": 20.0,
                 "name": "New product",
-                "prestashop_default_category_id": category_tshirts.id,
                 "standard_price": 10.0,
                 "weight": 0.1,
             }
@@ -148,22 +98,6 @@ class TestExportProduct(CatalogManagerTransactionCase):
         self.assertEqual(4, self.instance_delay_record.export_record.call_count)
 
     @assert_no_job_delayed
-    def test_export_product_template_wizard_resync(self):
-        # bind template
-        self._bind_template()
-        # resync from wizard
-        wizard = (
-            self.env["sync.products"]
-            .with_context(active_ids=[self.template.id], connector_delay=True)
-            .create({})
-        )
-        wizard.sync_products()
-        # check import done
-        self.instance_delay_record.import_record.assert_called_once_with(
-            self.backend_record, 8
-        )
-
-    @assert_no_job_delayed
     def test_export_product_template_onwrite(self):
         # bind template
         binding = self._bind_template()
@@ -226,7 +160,6 @@ class TestExportProduct(CatalogManagerTransactionCase):
                     "available_date": "2016-08-29",
                     "available_for_order": "1",
                     "barcode": "8411788010150",
-                    "id_category_default": "5",
                     "id_shop_default": "1",
                     "minimal_quantity": "2",
                     "on_sale": "1",

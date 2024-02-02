@@ -88,23 +88,6 @@
        </field>
     </record>
 
-    <record id="product_template_default_category_form" model="ir.ui.view">
-       <field name="model">product.template</field>
-       <field
-            name="inherit_id"
-            ref="product_multi_category.product_template_only_form_view_add_categids"
-        />
-       <field name="arch" type="xml">
-           <field name="categ_ids" position="after">
-               <field
-                    name="prestashop_default_category_id"
-                    domain="[('id', 'in', categ_ids)]"
-                    options="{'no_create': True}"
-                />
-           </field>
-       </field>
-    </record>
-
     <record id="product_connector_presta_form_view" model="ir.ui.view">
        <field name="model">prestashop.product.template</field>
        <field name="arch" type="xml">
@@ -141,14 +124,16 @@
     <record id="product_connector_presta_tree_view" model="ir.ui.view">
         <field name="model">prestashop.product.template</field>
         <field name="arch" type="xml">
-            <tree string="prestashop product" create="0">
+            <tree editable="bottom" string="prestashop product" create="0">
                 <field name="name" />
                 <field name="backend_id" string="Backend" />
+                <field name="default_shop_id"/>
+                <field name="prestashop_id"/>
+                <field name="link_rewrite"/>
                 <field name="date_add" />
                 <field name="date_upd" />
                 <field name="quantity" />
                 <field name="visibility" />
-                <field name="prestashop_id" />
                 <field name="reference" />
                 <field name="no_export" />
                 <button
@@ -157,7 +142,6 @@
                     type="object"
                     string="Export quantity"
                 />
-                <button name="resync" type="object" string="Resync" />
             </tree>
         </field>
     </record>
@@ -207,7 +191,6 @@
                     type="object"
                     string="Export quantity"
                 />
-                <button name="resync" type="object" string="Resync" />
             </tree>
         </field>
     </record>

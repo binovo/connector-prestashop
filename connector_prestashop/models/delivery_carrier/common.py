@@ -33,9 +33,6 @@ class PrestashopDeliveryCarrier(models.Model):
     active_ext = fields.Boolean(
         string="Active in PrestaShop",
     )
-    export_tracking = fields.Boolean(
-        string="Export tracking numbers to PrestaShop",
-    )
 
     _sql_constraints = [
         (
