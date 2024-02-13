@@ -215,7 +215,7 @@ class ProductTemplateExportMapper(Component):
             # price from the 6 digits rounded value
             return {"price": str(round(price_to_export / self._get_factor_tax(tax), 6))}
         else:
-            return {"price": str(price_to_export)}
+            return {"price": str(round(price_to_export, self.env["decimal.precision"].precision_get('Product Price')))}
 
     @changed_by("standard_price")
     @mapping
